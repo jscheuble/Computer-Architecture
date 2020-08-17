@@ -77,6 +77,7 @@ class CPU:
         """Run the CPU."""
 
         while self.running:
+            # instruction register, read memory address stored in register
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
@@ -84,7 +85,6 @@ class CPU:
             if IR == HLT:
                 # exit
                 self.running = False
-                self.pc += 1
             elif IR == LDI:
                 # set specified register to specified value
                 self.reg[operand_a] = [operand_b]
