@@ -1,6 +1,8 @@
 """CPU functionality."""
 
 import sys
+filename = sys.argv
+print(filename)
 
 LDI = 0b10000010
 PRN = 0b01000111
@@ -93,3 +95,6 @@ class CPU:
                 # print value from specified register
                 print(self.reg[operand_a])
                 self.pc += 2
+            else:
+                print(f'unknown instruction {IR} at address {self.pc}')
+                self.running = False
