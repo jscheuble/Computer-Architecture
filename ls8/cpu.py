@@ -2,6 +2,10 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
 
 class CPU:
     """Main CPU class."""
@@ -71,4 +75,21 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+
+        while self.running:
+            IR = self.ram_read(self.pc)
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 2)
+
+            if IR == HLT:
+                # exit
+                self.running = False
+                self.pc += 1
+            elif IR == LDI:
+                # set specified register to specified value
+                self.reg[operand_a] = [operand_b]
+                self.pc += 3
+            elif IR == PRN:
+                # print value from specified register
+                print(self.reg[operand_a])
+                self.pc += 2
