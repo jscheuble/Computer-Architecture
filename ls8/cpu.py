@@ -17,12 +17,18 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
+        self.branchtable = {}
+        self.branchtable[LDI] = self.handleLDI
+        self.branchtable[PRN] = self.handlePRN
+        self.branchtable[HLT] = self.handleHLT
+        self.branchtable[MUL] = self.handleMUL
 
     def load(self):
         """Load a program into memory."""
 
 
         # # For now, we've just hardcoded a program:
+        # address = 0
 
         # program = [
         #     # From print8.ls8
@@ -90,30 +96,55 @@ class CPU:
 
         print()
 
+    def handleHLT(self, a=None, b=None):
+        self.running = False
+
+    def handleLDI(self, a, b):
+        self.reg[a] = b
+        self.pc += 3
+
+    def handlePRN(self, a, b=None):
+        print(self.reg[a])
+        self.pc += 2
+
+    def handleMUL(self, a, b):
+        self.reg[a] = self.reg[a] * self.reg[b]
+        self.pc += 3
+
     def run(self):
         """Run the CPU."""
 
         while self.running:
             # instruction register, read memory address stored in register
+            # IR = self.ram_read(self.pc)
+            # operand_a = self.ram_read(self.pc + 1)
+            # operand_b = self.ram_read(self.pc + 2)
+
+            # if IR == HLT:
+            #     # exit
+            #     self.running = False
+            # elif IR == LDI:
+            #     # set specified register to specified value
+            #     self.reg[operand_a] = operand_b
+            #     self.pc += 3
+            # elif IR == PRN:
+            #     # print value from specified register
+            #     print(self.reg[operand_a])
+            #     self.pc += 2
+            # elif IR == MUL:
+            #     product = self.reg[operand_a] * self.reg[operand_b]
+            #     self.reg[operand_a] = product
+            #     self.pc += 3
+            # else:
+            #     print(f'unknown instruction {IR} at address {self.pc}')
+            #     self.running = False
+            #     # exit ?
+
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
             operand_b = self.ram_read(self.pc + 2)
-
-            if IR == HLT:
-                # exit
-                self.running = False
-            elif IR == LDI:
-                # set specified register to specified value
-                self.reg[operand_a] = [operand_b]
-                self.pc += 3
-            elif IR == PRN:
-                # print value from specified register
-                print(self.reg[operand_a])
-                self.pc += 2
-            elif IR == MUL:
-                print(operand_a * operand_b)
-                self.pc += 2
-            else:
+            if IR not in self.branchtable:
                 print(f'unknown instruction {IR} at address {self.pc}')
-                self.running = False
-                # exit ?
+            else:
+                f = self.branchtable[IR]
+                f(operand_a, operand_b)
