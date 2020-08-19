@@ -27,6 +27,7 @@ class CPU:
         self.branchtable[PUSH] = self.handlePUSH
         self.branchtable[POP] = self.handlePOP
         self.stack_pointer = 0xf4
+        self.reg[7] = self.stack_pointer
 
     def load(self):
         """Load a program into memory."""
@@ -118,6 +119,7 @@ class CPU:
     def handlePUSH(self, a, b=None):
         # decrement stack pointer
         self.stack_pointer -= 1
+        self.stack_pointer &= 0xff  # keep in range of 00-FF
 
         # get register number and value stored at specified regn umber
         reg_num = self.ram[self.pc + 1]
@@ -138,6 +140,8 @@ class CPU:
 
         # increment stack pointer and program counter
         self.stack_pointer += 1
+        self.stack_pointer &= 0xff  # keep in range of 00-FF
+
         self.pc += 2
 
     def run(self):
