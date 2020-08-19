@@ -2,12 +2,16 @@
 
 import sys
 
+# instruction variables
 LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+ADD = 0b10100000
 PUSH = 0b01000101
 POP = 0b01000110
+CALL = 0b01010000
+RET = 0b00010001
 
 
 class CPU:
@@ -24,30 +28,16 @@ class CPU:
         self.branchtable[PRN] = self.handlePRN
         self.branchtable[HLT] = self.handleHLT
         self.branchtable[MUL] = self.handleMUL
+        self.branchtable[ADD] = self.handleADD
         self.branchtable[PUSH] = self.handlePUSH
         self.branchtable[POP] = self.handlePOP
+        self.branchtable[CALL] = self.handleCALL
+        self.branchtable[RET] = self.handleRET
         self.stack_pointer = 0xf4
         self.reg[7] = self.stack_pointer
 
     def load(self):
         """Load a program into memory."""
-
-        # # For now, we've just hardcoded a program:
-        # address = 0
-
-        # program = [
-        #     # From print8.ls8
-        #     0b10000010,  # LDI R0,8
-        #     0b00000000,
-        #     0b00001000,
-        #     0b01000111,  # PRN R0
-        #     0b00000000,
-        #     0b00000001,  # HLT
-        # ]
-
-        # for instruction in program:
-        #     self.ram[address] = instruction
-        #     address += 1
 
         address = 0
         filename = sys.argv[1]
@@ -77,7 +67,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        # elif op == "SUB": etc
+        elif op == "MUL":
+            self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -121,7 +112,7 @@ class CPU:
         self.stack_pointer -= 1
         self.stack_pointer &= 0xff  # keep in range of 00-FF
 
-        # get register number and value stored at specified regn umber
+        # get register number and value stored at specified reg number
         reg_num = self.ram[self.pc + 1]
         val = self.reg[reg_num]
 
@@ -131,8 +122,7 @@ class CPU:
 
     def handlePOP(self, a, b=None):
         # get value from RAM
-        address = self.stack_pointer
-        val = self.ram[address]
+        val = self.ram[self.stack_pointer]
 
         # store at given register
         reg_num = self.ram[self.pc + 1]
@@ -144,34 +134,27 @@ class CPU:
 
         self.pc += 2
 
+    def handleCALL(self, a, b):
+        # return counter
+        rc = self.pc + 2
+        self.stack_pointer -= 1
+        self.ram[self.stack_pointer] = rc
+        self.pc = self.reg[a]
+
+    def handleRET(self, a, b):
+        # pop from stack
+        val = self.ram[self.stack_pointer]
+        self.pc = val
+        self.stack_pointer += 1
+
+    def handleADD(self, a, b):
+        self.alu('ADD', a, b)
+        self.pc += 3
+
     def run(self):
         """Run the CPU."""
 
         while self.running:
-            # instruction register, read memory address stored in register
-            # IR = self.ram_read(self.pc)
-            # operand_a = self.ram_read(self.pc + 1)
-            # operand_b = self.ram_read(self.pc + 2)
-
-            # if IR == HLT:
-            #     # exit
-            #     self.running = False
-            # elif IR == LDI:
-            #     # set specified register to specified value
-            #     self.reg[operand_a] = operand_b
-            #     self.pc += 3
-            # elif IR == PRN:
-            #     # print value from specified register
-            #     print(self.reg[operand_a])
-            #     self.pc += 2
-            # elif IR == MUL:
-            #     product = self.reg[operand_a] * self.reg[operand_b]
-            #     self.reg[operand_a] = product
-            #     self.pc += 3
-            # else:
-            #     print(f'unknown instruction {IR} at address {self.pc}')
-            #     self.running = False
-            #     # exit ?
 
             IR = self.ram_read(self.pc)
             operand_a = self.ram_read(self.pc + 1)
