@@ -135,16 +135,19 @@ class CPU:
         self.pc += 2
 
     def handleCALL(self, a, b):
-        # return counter
+        # return counter, save to stack
         rc = self.pc + 2
         self.stack_pointer -= 1
         self.ram[self.stack_pointer] = rc
+
         self.pc = self.reg[a]
 
     def handleRET(self, a, b):
         # pop from stack
         val = self.ram[self.stack_pointer]
+        # set pc back to previous
         self.pc = val
+        # increment stack pointer
         self.stack_pointer += 1
 
     def handleADD(self, a, b):
