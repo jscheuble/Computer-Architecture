@@ -6,6 +6,8 @@ LDI = 0b10000010
 PRN = 0b01000111
 HLT = 0b00000001
 MUL = 0b10100010
+PUSH = 0b01000101
+POP = 0b01000110
 
 
 class CPU:
@@ -22,10 +24,12 @@ class CPU:
         self.branchtable[PRN] = self.handlePRN
         self.branchtable[HLT] = self.handleHLT
         self.branchtable[MUL] = self.handleMUL
+        self.branchtable[PUSH] = self.handlePUSH
+        self.branchtable[POP] = self.handlePOP
+        self.stack_pointer = 0xf4
 
     def load(self):
         """Load a program into memory."""
-
 
         # # For now, we've just hardcoded a program:
         # address = 0
@@ -111,6 +115,31 @@ class CPU:
         self.reg[a] = self.reg[a] * self.reg[b]
         self.pc += 3
 
+    def handlePUSH(self, a, b=None):
+        # decrement stack pointer
+        self.stack_pointer -= 1
+
+        # get register number and value stored at specified regn umber
+        reg_num = self.ram[self.pc + 1]
+        val = self.reg[reg_num]
+
+        # store value in ram
+        self.ram[self.stack_pointer] = val
+        self.pc += 2
+
+    def handlePOP(self, a, b=None):
+        # get value from RAM
+        address = self.stack_pointer
+        val = self.ram[address]
+
+        # store at given register
+        reg_num = self.ram[self.pc + 1]
+        self.reg[reg_num] = val
+
+        # increment stack pointer and program counter
+        self.stack_pointer += 1
+        self.pc += 2
+
     def run(self):
         """Run the CPU."""
 
@@ -145,6 +174,7 @@ class CPU:
             operand_b = self.ram_read(self.pc + 2)
             if IR not in self.branchtable:
                 print(f'unknown instruction {IR} at address {self.pc}')
+                self.running = False
             else:
                 f = self.branchtable[IR]
                 f(operand_a, operand_b)
