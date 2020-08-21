@@ -13,6 +13,14 @@ POP = 0b01000110
 CALL = 0b01010000
 RET = 0b00010001
 
+# sprint instruction variables
+CMP = 0b10100111
+
+# flags
+EFLAG = 0b001
+LFLAG = 0b011
+GFLAG = 0b010
+
 
 class CPU:
     """Main CPU class."""
@@ -23,6 +31,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
+
         self.branchtable = {}
         self.branchtable[LDI] = self.handleLDI
         self.branchtable[PRN] = self.handlePRN
@@ -33,6 +42,8 @@ class CPU:
         self.branchtable[POP] = self.handlePOP
         self.branchtable[CALL] = self.handleCALL
         self.branchtable[RET] = self.handleRET
+        self.branchtable[CMP] = self.handleCMP
+
         self.stack_pointer = 0xf4
         self.reg[7] = self.stack_pointer
 
@@ -69,6 +80,15 @@ class CPU:
             self.reg[reg_a] += self.reg[reg_b]
         elif op == "MUL":
             self.reg[reg_a] = self.reg[reg_a] * self.reg[reg_b]
+        elif op == "CMP":
+            a = self.reg[reg_a]
+            b = self.reg[reg_b]
+            if a > b:
+                self.flag = GFLAG
+            elif a < b:
+                self.flag = LFLAG
+            else:
+                self.flag = EFLAG
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -102,6 +122,10 @@ class CPU:
     def handlePRN(self, a, b=None):
         print(self.reg[a])
         self.pc += 2
+
+    def handleADD(self, a, b):
+        self.alu('ADD', a, b)
+        self.pc += 3
 
     def handleMUL(self, a, b):
         self.reg[a] = self.reg[a] * self.reg[b]
@@ -150,8 +174,8 @@ class CPU:
         # increment stack pointer
         self.stack_pointer += 1
 
-    def handleADD(self, a, b):
-        self.alu('ADD', a, b)
+    def handleCMP(self, a, b):
+        self.alu('CMP', a, b)
         self.pc += 3
 
     def run(self):
