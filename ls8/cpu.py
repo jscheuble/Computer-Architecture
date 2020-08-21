@@ -15,6 +15,7 @@ RET = 0b00010001
 
 # sprint instruction variables
 CMP = 0b10100111
+JMP = 0b01010100
 
 # flags
 EFLAG = 0b001
@@ -43,6 +44,7 @@ class CPU:
         self.branchtable[CALL] = self.handleCALL
         self.branchtable[RET] = self.handleRET
         self.branchtable[CMP] = self.handleCMP
+        self.branchtable[JMP] = self.handleJMP
 
         self.stack_pointer = 0xf4
         self.reg[7] = self.stack_pointer
@@ -177,6 +179,9 @@ class CPU:
     def handleCMP(self, a, b):
         self.alu('CMP', a, b)
         self.pc += 3
+
+    def handleJMP(self, a, b):
+        self.pc = self.reg[a]
 
     def run(self):
         """Run the CPU."""
