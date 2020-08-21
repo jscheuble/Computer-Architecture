@@ -17,7 +17,7 @@ RET = 0b00010001
 CMP = 0b10100111
 JMP = 0b01010100
 JEQ = 0b01010101
-
+JNE = 0b01010110
 
 # flags
 EFLAG = 0b001
@@ -34,6 +34,7 @@ class CPU:
         self.reg = [0] * 8
         self.pc = 0
         self.running = True
+        self.flag = None
 
         self.branchtable = {}
         self.branchtable[LDI] = self.handleLDI
@@ -48,6 +49,7 @@ class CPU:
         self.branchtable[CMP] = self.handleCMP
         self.branchtable[JMP] = self.handleJMP
         self.branchtable[JEQ] = self.handleJEQ
+        self.branchtable[JNE] = self.handleJNE
 
         self.stack_pointer = 0xf4
         self.reg[7] = self.stack_pointer
@@ -188,6 +190,12 @@ class CPU:
 
     def handleJEQ(self, a, b):
         if self.flag == EFLAG:
+            self.pc = self.reg[a]
+        else:
+            self.pc += 2
+
+    def handleJNE(self, a, b):
+        if self.flag != EFLAG:
             self.pc = self.reg[a]
         else:
             self.pc += 2
